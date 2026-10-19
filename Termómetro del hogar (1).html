@@ -1,0 +1,604 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Termómetro del hogar</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,500..800&family=Source+Sans+3:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: una sola columna de 760px. Ficha de datos, cinco bloques de preguntas y un informe con termómetros de cuatro tramos. */
+:root{
+  --bg:#F1F5F8; --surface:#FFFFFF; --ink:#10212D; --muted:#4F6270; --line:#D3DDE5;
+  --accent:#1F4E8C; --accent-ink:#FFFFFF; --soft:#E3EBF4;
+  --lv0:#2F8F5B; --lv1:#D9A400; --lv2:#E07A1E; --lv3:#C8372D;
+  --f-display:'Bricolage Grotesque','Trebuchet MS',system-ui,sans-serif;
+  --f-body:'Source Sans 3','Segoe UI',system-ui,sans-serif;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --bg:#0E161C; --surface:#16212A; --ink:#E7EEF2; --muted:#9DB0BC; --line:#2B3C4A;
+    --accent:#7FB0F0; --accent-ink:#0E161C; --soft:#1B2A38;
+    --lv0:#4CC081; --lv1:#F0C23A; --lv2:#F29545; --lv3:#F06A5F;
+    color-scheme:dark;
+  }
+}
+:root[data-theme="dark"]{
+  --bg:#0E161C; --surface:#16212A; --ink:#E7EEF2; --muted:#9DB0BC; --line:#2B3C4A;
+  --accent:#7FB0F0; --accent-ink:#0E161C; --soft:#1B2A38;
+  --lv0:#4CC081; --lv1:#F0C23A; --lv2:#F29545; --lv3:#F06A5F;
+  color-scheme:dark;
+}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.55}
+*,*::before,*::after{box-sizing:border-box}
+.wrap{max-width:760px;margin:0 auto;padding-block:28px 72px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+h1,h2,h3{font-family:var(--f-display);line-height:1.15;margin:0;text-wrap:balance}
+p{margin:0}
+.eyebrow{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+h1{font-size:clamp(34px,8vw,52px);font-weight:700;letter-spacing:-.02em;margin-top:8px}
+.strip{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;max-width:260px;margin:16px 0 18px}
+.strip i{height:10px;border-radius:3px}
+.strip i:nth-child(1){background:var(--lv0)}.strip i:nth-child(2){background:var(--lv1)}.strip i:nth-child(3){background:var(--lv2)}.strip i:nth-child(4){background:var(--lv3)}
+.lead{font-size:19px;max-width:62ch}
+.note{background:var(--soft);border-radius:10px;padding:16px 18px;margin-top:18px;display:grid;gap:8px;font-size:16px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:20px;margin-top:20px}
+.part{font-size:13px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--accent)}
+.card h2{font-size:26px;font-weight:700;margin-top:4px}
+.card .intro{color:var(--muted);margin-top:8px;max-width:62ch}
+.grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px 16px;margin-top:18px}
+.field{display:grid;gap:6px;min-width:0}
+.field.full{grid-column:1/-1}
+.field label{font-weight:600;font-size:16px}
+input[type=text],select{font:inherit;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:8px;min-height:46px;padding:0 12px;width:100%;min-width:0}
+input[type=text]:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid var(--accent);outline-offset:1px}
+.hint{font-size:15px;color:var(--muted);margin-top:12px}
+.err{color:var(--lv3);font-weight:700;margin-top:12px}
+fieldset.q{border:0;margin:0;padding:18px 0 16px;border-top:1px solid var(--line);min-width:0}
+fieldset.q:first-of-type{margin-top:16px}
+fieldset.q legend{padding:0;margin-bottom:12px;float:none;width:100%}
+.lg{display:flex;gap:10px;align-items:flex-start;font-weight:600}
+.qn{flex:none;min-width:30px;height:26px;display:inline-grid;place-items:center;border-radius:6px;background:var(--soft);color:var(--accent);font-size:14px;font-weight:700;font-variant-numeric:tabular-nums}
+.opts{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.opt{position:relative;display:block}
+.opt input{position:absolute;opacity:0;inset:0;width:100%;height:100%;margin:0;cursor:pointer}
+.opt span{display:flex;align-items:center;justify-content:center;text-align:center;min-height:48px;padding:6px 4px;border:1.5px solid var(--line);border-radius:8px;background:var(--surface);font-weight:600;font-size:15px;line-height:1.2}
+.opt:hover span{border-color:var(--accent)}
+.opt input:checked + span{background:var(--accent);border-color:var(--accent);color:var(--accent-ink)}
+.opt input:focus-visible + span{outline:3px solid var(--accent);outline-offset:2px}
+fieldset.q.missing{background:color-mix(in srgb,var(--lv3) 9%,transparent);border-radius:8px}
+fieldset.q.missing legend::after{content:"Falta responder";display:block;margin:6px 0 0 40px;color:var(--lv3);font-weight:700;font-size:14px}
+.prog{height:8px;border-radius:99px;background:var(--line);overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--accent);transition:width .25s}
+#count{margin-top:10px;font-weight:600;font-variant-numeric:tabular-nums}
+.row{display:flex;flex-wrap:wrap;gap:10px;margin-top:16px}
+.btn{font:inherit;font-weight:700;min-height:48px;padding:0 22px;border-radius:8px;border:1.5px solid var(--accent);background:var(--accent);color:var(--accent-ink);cursor:pointer}
+.btn.ghost{background:transparent;color:var(--accent)}
+.btn:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.btn.sm{min-height:40px;padding:0 14px;font-size:15px}
+/* Resultado */
+#out{outline:none}
+.rhead h2{font-size:clamp(30px,7vw,44px);font-weight:700;margin-top:6px;letter-spacing:-.01em}
+.ficha{display:grid;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));gap:12px 18px;margin:18px 0 0;padding:16px 0 0;border-top:1px solid var(--line)}
+.ficha dt{font-size:12px;font-weight:700;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+.ficha dd{margin:2px 0 0;font-weight:600;overflow-wrap:anywhere}
+.alert{border:2px solid var(--lv3);background:color-mix(in srgb,var(--lv3) 9%,var(--surface));border-radius:12px;padding:18px;margin-top:20px;display:grid;gap:14px}
+.alert h3{font-size:22px}
+.alert .a-item{display:grid;gap:4px}
+.alert .a-item strong{font-size:17px}
+.sumcard{background:var(--soft);border-color:transparent}
+.sumcard h3{font-size:24px}
+.qa{display:grid;gap:10px;margin:16px 0 0;padding:0;list-style:none}
+.qa li{display:flex;flex-wrap:wrap;justify-content:space-between;gap:4px 16px;padding-bottom:10px;border-bottom:1px solid var(--line)}
+.qa li span:first-child{font-weight:600}
+.qa li span:last-child{font-weight:700}
+.sumcard h4{font-family:var(--f-display);font-size:18px;margin:18px 0 6px}
+.sumcard ul,.rep ul{margin:8px 0 0;padding-left:22px;display:grid;gap:6px}
+.areas-r{display:grid;gap:22px;margin-top:18px}
+.ar{display:grid;gap:8px}
+.ar-top{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:6px 12px}
+.ar-top strong{font-family:var(--f-display);font-size:19px}
+.chip{display:inline-block;padding:3px 12px;border-radius:99px;font-weight:700;font-size:14px;background:var(--soft);color:var(--ink);border:1px solid var(--line)}
+@supports (background:color-mix(in srgb,red 10%,white)){
+  .chip{background:color-mix(in srgb,var(--c) 20%,var(--surface));border-color:color-mix(in srgb,var(--c) 60%,var(--surface))}
+}
+.ar p{color:var(--muted);font-size:16px;max-width:62ch}
+.meter{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:4px}
+.seg i{display:block;height:12px;border-radius:3px;background:var(--line)}
+.seg i.on{background:var(--c)}
+.seg b{display:block;margin-top:4px;text-align:center;font-size:12px;font-weight:500;color:var(--muted)}
+.seg.cur b{color:var(--ink);font-weight:700}
+.rep section{padding-top:22px;margin-top:22px;border-top:1px solid var(--line)}
+.rep section:first-of-type{border-top:0;margin-top:8px;padding-top:0}
+.rep h3{font-size:22px;margin-bottom:10px}
+.rep p+p{margin-top:10px}
+.rep p,.rep li{max-width:66ch}
+.card-head{display:flex;flex-wrap:wrap;justify-content:space-between;align-items:center;gap:10px}
+.card-head h2,.card-head h3{margin:0}
+#fb textarea{width:100%;min-height:180px;font:inherit;font-size:15px;color:var(--ink);background:var(--surface);border:1.5px solid var(--line);border-radius:8px;padding:10px;margin-top:8px}
+@media (max-width:520px){
+  .grid{grid-template-columns:minmax(0,1fr)}
+  .card{padding:16px}
+  .opt span{font-size:14px}
+}
+@media (prefers-reduced-motion:reduce){*{transition:none!important;scroll-behavior:auto!important}}
+</style>
+
+<div class="wrap">
+  <header>
+    <p class="eyebrow">Para madres, padres y cuidadores · Niños de 6 a 14 años</p>
+    <h1>Termómetro del hogar</h1>
+    <div class="strip" aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <p class="lead">Este test ayuda a darse cuenta si en casa hay violencia familiar o problemas con el alcohol, y si eso pone en riesgo que su hijo o hija siga en la escuela. Toma unos 10 minutos.</p>
+    <div class="note">
+      <p><strong>Cómo responder.</strong> Piense en el último mes. Marque <em>Nunca</em> si no pasa, <em>A veces</em> si pasa de vez en cuando y <em>Casi siempre</em> si pasa casi todas las semanas o todos los días. Nadie lo está juzgando. Mientras más sincero sea, más útil es el resultado.</p>
+      <p><strong>Privacidad.</strong> Sus respuestas se quedan en esta pantalla. No se guardan ni se envían a ningún lugar.</p>
+    </div>
+  </header>
+
+  <main id="test">
+    <form id="form" novalidate>
+      <section class="card" aria-labelledby="h-datos">
+        <p class="part">Parte 1 de 6</p>
+        <h2 id="h-datos">Datos de la familia</h2>
+        <p class="intro">Estos nombres aparecen en el informe y en el resumen.</p>
+        <div class="grid">
+          <div class="field full"><label for="child">Nombre del niño o niña</label><input id="child" type="text" autocomplete="off" maxlength="80"></div>
+          <div class="field"><label for="age">Edad</label>
+            <select id="age"><option value="">Elija la edad</option><option value="6">6 años</option><option value="7">7 años</option><option value="8">8 años</option><option value="9">9 años</option><option value="10">10 años</option><option value="11">11 años</option><option value="12">12 años</option><option value="13">13 años</option><option value="14">14 años</option></select></div>
+          <div class="field"><label for="grade">Curso o grado</label><input id="grade" type="text" autocomplete="off" maxlength="40" placeholder="Por ejemplo: 4.º de primaria"></div>
+          <div class="field"><label for="mother">Madre o tutora</label><input id="mother" type="text" autocomplete="off" maxlength="80"></div>
+          <div class="field"><label for="father">Padre o tutor</label><input id="father" type="text" autocomplete="off" maxlength="80"></div>
+          <div class="field full"><label for="who">Quién responde el test</label>
+            <select id="who"><option value="">Elija una opción</option><option>La madre</option><option>El padre</option><option>Ambos</option><option>Otro cuidador</option></select></div>
+        </div>
+        <p class="hint">Escriba al menos el nombre de un padre, madre o tutor.</p>
+        <p class="err" id="err-datos" role="alert" hidden></p>
+      </section>
+
+      <div id="areas"></div>
+
+      <section class="card" aria-label="Enviar respuestas">
+        <div class="prog" aria-hidden="true"><i id="bar"></i></div>
+        <p id="count" aria-live="polite"></p>
+        <p class="err" id="err-q" role="alert" hidden></p>
+        <div class="row">
+          <button class="btn" type="submit">Ver resultado</button>
+          <button class="btn ghost" type="button" id="ex">Cargar un ejemplo</button>
+          <button class="btn ghost" type="button" id="clear">Borrar todo</button>
+        </div>
+        <p class="hint" id="ex-note" hidden>Se cargaron datos de ejemplo. Pulse «Borrar todo» antes de usar el test con una familia real.</p>
+      </section>
+    </form>
+  </main>
+
+  <section id="out" tabindex="-1" aria-label="Resultado" hidden></section>
+</div>
+
+<script>
+(function(){
+'use strict';
+const $=s=>document.querySelector(s);
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const SCALE=[{v:0,t:'Nunca'},{v:1,t:'A veces'},{v:2,t:'Casi siempre'}];
+const LV=['Bajo','Leve','Moderado','Alto'];
+const DLN=['Bajo','Medio','Alto'];
+const PLN=['Baja','Media','Alta'];
+const C4=['var(--lv0)','var(--lv1)','var(--lv2)','var(--lv3)'];
+const C3=['var(--lv0)','var(--lv2)','var(--lv3)'];
+const CP=['var(--accent)','var(--accent)','var(--accent)'];
+
+const AREAS=[
+{id:'V',name:'Violencia en casa',intro:'Aquí se pregunta por gritos, golpes, miedo y descuido. Responda por lo que de verdad pasa en su casa.',items:[
+ {id:'V1',s:'gritos fuertes',q:'En casa se gritan fuerte cuando hay un problema.'},
+ {id:'V2',s:'insultos o humillaciones',q:'Alguien insulta, humilla o dice palabras que hieren (por ejemplo: «tonto», «inútil», «no sirves»).'},
+ {id:'V3',s:'golpes al niño o niña',crit:1,q:'Alguien le pega al niño o niña (golpes, correazos, pellizcos fuertes, jalones).'},
+ {id:'V4',s:'castigos con marcas o moretones',crit:1,q:'Los castigos le dejan marcas, moretones o heridas al niño o niña.'},
+ {id:'V5',s:'golpes o empujones entre adultos',crit:1,q:'Los adultos de la casa se empujan, se golpean o se lanzan cosas.'},
+ {id:'V6',s:'peleas de adultos vistas o escuchadas por el niño o niña',q:'El niño o niña ha visto o escuchado peleas fuertes entre adultos.'},
+ {id:'V7',s:'amenazas que asustan',q:'Se dicen amenazas que asustan (por ejemplo: «te voy a echar», «me voy y no vuelvo», «te va a ir peor»).'},
+ {id:'V8',s:'adultos con miedo de otro adulto',q:'Algún adulto de la casa tiene miedo de otro adulto de la casa.'},
+ {id:'V9',s:'descuido de necesidades básicas',q:'El niño o niña se queda solo mucho tiempo, o a veces le falta comida, ropa limpia o atención médica.'},
+ {id:'V10',s:'miedo del niño o niña a alguien de la casa',crit:1,q:'El niño o niña tiene miedo de alguien de la casa.'}
+]},
+{id:'A',name:'Alcohol en casa',intro:'Estas preguntas son sobre cualquier persona de la casa que tome alcohol, incluido usted. No se trata de culpar a nadie, sino de ver cómo afecta a la familia.',items:[
+ {id:'A1',s:'consumo frecuente',q:'Alguien de la casa toma alcohol varias veces por semana.'},
+ {id:'A2',s:'borracheras',q:'Alguien toma hasta emborracharse.'},
+ {id:'A3',s:'agresividad al tomar',crit:1,q:'Cuando esa persona toma, se pone agresiva: grita, insulta, pelea o rompe cosas.'},
+ {id:'A4',s:'olvidos después de tomar',q:'Después de tomar, alguien no se acuerda de lo que hizo o dijo.'},
+ {id:'A5',s:'dinero gastado en alcohol que hacía falta',q:'Se gasta en alcohol dinero que hacía falta para comida, útiles escolares u otras necesidades.'},
+ {id:'A6',s:'dificultad para tomar menos, o comentarios de otros',q:'Alguien ha intentado tomar menos y no ha podido, o sus familiares le dicen que toma demasiado.'},
+ {id:'A7',s:'el niño o niña ha visto o cuidado a un adulto ebrio',q:'El niño o niña ha visto a un adulto borracho, o le ha tocado cuidarlo o ayudarlo.'},
+ {id:'A8',s:'cuidado o manejo después de tomar',crit:1,q:'Un adulto cuida al niño o niña, o maneja con él o ella, después de haber tomado.'},
+ {id:'A9',s:'alcohol dado o permitido al niño o niña',q:'Al niño o niña le han dado o le han dejado probar alcohol.'}
+]},
+{id:'N',name:'Cómo está el niño o la niña',intro:'Piense en cómo ha visto a su hijo o hija en el último mes.',items:[
+ {id:'N1',s:'tristeza o desgano',q:'Se ve triste, llora con facilidad o ya no disfruta lo que antes le gustaba.'},
+ {id:'N2',s:'nerviosismo o sustos',q:'Se ve nervioso o asustado, o se sobresalta con los ruidos fuertes.'},
+ {id:'N3',s:'pesadillas o problemas para dormir',q:'Tiene pesadillas, le cuesta dormir o no quiere dormir solo.'},
+ {id:'N4',s:'dolores sin causa médica',q:'Le duele la cabeza o la panza seguido y el médico no encuentra la causa.'},
+ {id:'N5',s:'enojo, peleas o respuestas muy fuertes',q:'Se enoja con facilidad, pega, rompe cosas o contesta muy mal.'},
+ {id:'N6',s:'aislamiento',q:'Se aísla: no quiere jugar, hablar ni estar con otros niños.'},
+ {id:'N7',s:'mentiras o escondites por miedo',q:'Miente o se esconde por miedo a que lo castiguen.'},
+ {id:'N8',s:'conductas de niño más pequeño',q:'Actúa como más pequeño: se hace pipí en la cama, habla como bebé o no se despega de un adulto, cuando antes ya no lo hacía.'},
+ {id:'N9',s:'culpa o mala opinión de sí mismo',q:'Dice que es malo, que no sirve o que tiene la culpa de lo que pasa en casa.'},
+ {id:'N10',s:'frases o actos que preocupan sobre hacerse daño',crit:1,q:'Ha dicho o hecho algo que preocupa: que quiere hacerse daño o que no quiere vivir.'}
+]},
+{id:'E',name:'La escuela',intro:'Estas preguntas ayudan a ver si hay riesgo de que deje de ir a la escuela.',items:[
+ {id:'E1',s:'faltas o atrasos',q:'Falta a clases o llega tarde seguido.'},
+ {id:'E2',s:'baja de notas',q:'Le han bajado las notas en los últimos meses.'},
+ {id:'E3',s:'rechazo a ir a la escuela',q:'No quiere ir a la escuela, o se enferma justo antes de ir.'},
+ {id:'E4',s:'tareas sin apoyo',q:'No hace las tareas, o en casa no hay quién lo ayude ni un lugar tranquilo para hacerlas.'},
+ {id:'E5',s:'dificultad para concentrarse',q:'Se distrae mucho en clases o le cuesta concentrarse.'},
+ {id:'E6',s:'conflictos con compañeros o docentes',q:'Tiene peleas o problemas con compañeros o con profesores.'},
+ {id:'E7',s:'burlas o acoso',q:'Se burlan de él o ella, o lo molestan en la escuela.'},
+ {id:'E8',s:'repetición de curso o atraso',q:'Ha repetido un curso o está más atrasado que sus compañeros.'},
+ {id:'E9',s:'faltas para trabajar o cuidar a otros',q:'Se le pide faltar a clases para trabajar, cuidar hermanos o ayudar en casa.'},
+ {id:'E10',s:'poco contacto con la escuela',q:'Casi no se habla con la escuela: no se va a las reuniones ni se revisan los cuadernos.'}
+]},
+{id:'P',name:'Lo que protege',protective:1,intro:'Ahora, lo bueno. Estas cosas protegen a un niño aunque haya problemas en casa. En esta parte, «Casi siempre» es lo mejor.',items:[
+ {id:'P1',s:'un adulto de confianza',q:'El niño o niña tiene al menos un adulto de confianza con quien habla de lo que siente.'},
+ {id:'P2',s:'rutinas estables',q:'En casa hay horarios más o menos estables para comer, dormir y hacer tareas.'},
+ {id:'P3',s:'algo que le gusta de la escuela',q:'Hay algo de la escuela que le gusta: sus amigos, una materia, un deporte o el arte.'},
+ {id:'P4',s:'reconocimiento y acompañamiento',q:'Alguien lo felicita y lo acompaña cuando se esfuerza o logra algo.'}
+]}
+];
+const ALL=AREAS.flatMap(a=>a.items.map(i=>Object.assign({area:a.id},i)));
+
+const EX={V1:2,V2:1,V3:0,V4:0,V5:0,V6:2,V7:1,V8:1,V9:0,V10:1,A1:2,A2:1,A3:1,A4:1,A5:1,A6:1,A7:2,A8:0,A9:0,N1:1,N2:1,N3:2,N4:1,N5:1,N6:1,N7:0,N8:0,N9:1,N10:0,E1:1,E2:2,E3:1,E4:1,E5:2,E6:0,E7:0,E8:0,E9:0,E10:1,P1:1,P2:1,P3:2,P4:1};
+
+/* ---------- Formulario ---------- */
+function renderQs(){
+  let n=0;
+  $('#areas').innerHTML=AREAS.map((a,ai)=>`
+  <section class="card" aria-labelledby="h-${a.id}">
+    <p class="part">Parte ${ai+2} de 6</p>
+    <h2 id="h-${a.id}">${esc(a.name)}</h2>
+    <p class="intro">${esc(a.intro)}</p>
+    ${a.items.map(it=>{n++;return `
+    <fieldset class="q" id="f-${it.id}">
+      <legend><span class="lg"><span class="qn">${n}</span><span>${esc(it.q)}</span></span></legend>
+      <div class="opts">${SCALE.map(s=>`<label class="opt"><input type="radio" name="${it.id}" id="${it.id}-${s.v}" value="${s.v}"><span>${s.t}</span></label>`).join('')}</div>
+    </fieldset>`;}).join('')}
+  </section>`).join('');
+}
+function answered(){return ALL.filter(i=>document.querySelector('input[name="'+i.id+'"]:checked')).length}
+function progress(){
+  const a=answered(),t=ALL.length;
+  $('#bar').style.width=Math.round(a/t*100)+'%';
+  $('#count').textContent=a+' de '+t+' preguntas respondidas';
+}
+function getAns(){
+  const ans={},missing=[];
+  ALL.forEach(i=>{const c=document.querySelector('input[name="'+i.id+'"]:checked');if(c)ans[i.id]=+c.value;else missing.push(i.id);});
+  return {ans,missing};
+}
+function getData(){
+  return {child:$('#child').value.trim(),age:$('#age').value,grade:$('#grade').value.trim(),mother:$('#mother').value.trim(),father:$('#father').value.trim(),who:$('#who').value};
+}
+
+/* ---------- Cálculo ---------- */
+function stats(ans){
+  const st={};
+  AREAS.forEach(a=>{
+    const n=a.items.length;let sum=0,critMax=0;
+    a.items.forEach(i=>{const v=ans[i.id];sum+=v;if(i.crit&&v>critMax)critMax=v;});
+    const p=Math.round(sum/(2*n)*100);
+    let l=p<15?0:p<35?1:p<60?2:3;
+    if(!a.protective){if(critMax>=1)l=Math.max(l,2);if(critMax===2)l=3;}
+    st[a.id]={p,l,critMax};
+  });
+  return st;
+}
+function marked(ans,areaId,min){
+  const a=AREAS.find(x=>x.id===areaId);
+  return a.items.filter(i=>ans[i.id]>=min).map(i=>i.s+(ans[i.id]===2?' (casi siempre)':' (a veces)'));
+}
+
+function build(d,ans){
+  const st=stats(ans),V=st.V,A=st.A,N=st.N,E=st.E,P=st.P;
+  const name=d.child,age=+d.age;
+  const ag=age<=8?'6 a 8':age<=11?'9 a 11':'12 a 14';
+  const parentsArr=[d.mother,d.father].filter(Boolean);
+  const parents=parentsArr.join(' y ');
+  const pl=P.p<35?0:P.p<65?1:2;
+  const date=new Date().toLocaleDateString('es',{day:'numeric',month:'long',year:'numeric'});
+
+  /* deserción */
+  let score=0.45*E.p+0.20*V.p+0.15*A.p+0.20*N.p-0.10*P.p;
+  score=Math.max(0,Math.min(100,Math.round(score)));
+  let dl=score<25?0:score<45?1:2;
+  const strong=[ans.E1===2,ans.E3>=1,ans.E2>=1,ans.E8>=1,ans.E9>=1].filter(Boolean).length;
+  if(strong>=4)dl=2;else if(strong>=2)dl=Math.max(dl,1);
+  if(E.p>=60&&(V.l>=2||A.l>=2))dl=2;
+
+  /* alertas */
+  const al=[];
+  if(['V3','V4','V5','V10'].some(k=>ans[k]>=1))al.push({t:'Posible violencia física o miedo en casa',d:`Usted marcó golpes, marcas, violencia entre adultos o miedo de ${name} hacia alguien de casa. Estas situaciones no se resuelven solas. Busque ayuda profesional y los servicios de protección de la niñez de su localidad. Si hay peligro ahora mismo, llame a emergencias.`});
+  if(ans.N10>=1)al.push({t:'Señal de posible riesgo emocional grave',d:`${name} ha dicho o hecho algo que preocupa sobre hacerse daño o no querer vivir. Tómelo en serio. No lo deje solo, hable con calma y consulte esta semana a un profesional de salud mental o a un servicio de urgencias. Si cree que corre peligro ahora, llame a emergencias.`});
+  if(ans.A8>=1)al.push({t:'Riesgo físico por alcohol',d:`Un adulto cuida a ${name}, o maneja con esa persona, después de tomar. Eso puede causar accidentes graves. Acuerden hoy qué adulto que no haya tomado se encargará en esos momentos.`});
+  if(ans.A9>=1)al.push({t:'Se ofreció alcohol a un niño o niña',d:`El alcohol daña el cerebro en desarrollo y aumenta el riesgo de consumo problemático más adelante. No se lo ofrezca ni lo permita, ni siquiera para probar.`});
+  if(ans.V9===2)al.push({t:'Posible descuido de necesidades básicas',d:`Usted marcó que ${name} casi siempre queda solo o sin comida, ropa limpia o atención de salud. Busque apoyo social o de protección de la niñez de su localidad para cubrir lo básico.`});
+
+  /* resumen */
+  const VA=['No se observan señales','Posibles señales leves','Sí, hay señales','Sí, hay señales claras y fuertes'];
+  const ov=Math.max(V.l,A.l,N.l);
+  const HEAD=[
+    `Con lo que usted respondió, no se ven señales claras de violencia familiar ni de problemas con el alcohol que afecten a ${name}.`,
+    `Se ven algunas señales de tensión en casa. Si se atienden a tiempo, ${name} puede estar bien.`,
+    `Se ven señales importantes que pueden estar afectando a ${name}. Se recomienda pedir ayuda profesional.`,
+    `Se ven señales fuertes y repetidas. ${name} necesita protección y ayuda profesional pronto.`];
+  const DROPLINE=[
+    `El riesgo de que ${name} deje la escuela es bajo por ahora.`,
+    `El riesgo de que ${name} deje la escuela es medio. Todavía es buen momento para actuar.`,
+    `El riesgo de que ${name} deje la escuela es alto. Conviene actuar en las próximas semanas.`];
+  let act=[];
+  if(al.length)act.push(`Atender primero las alertas: la protección y la seguridad de ${name}.`);
+  if(V.l>=1||A.l>=1||N.l>=1)act.push('Pedir una evaluación con un psicólogo o psicóloga infantil, llevando este informe.');
+  if(A.l>=1)act.push('Hablar con un médico o un centro de atención sobre el consumo de alcohol en casa.');
+  if(dl>=1)act.push('Reunirse con la escuela esta semana y armar un plan de asistencia y apoyo en tareas.');
+  if(!act.length)act.push('Seguir con rutinas estables, tiempo de calidad y contacto con la escuela. Repetir el test si algo cambia.');
+  act=act.slice(0,3);
+
+  const summary={
+    head:HEAD[ov],
+    qa:[
+      ['¿Hay señales de violencia familiar?',VA[V.l]],
+      ['¿Hay señales de problemas con el alcohol en casa?',VA[A.l]],
+      [`¿Se ven señales de sufrimiento en ${name}?`,VA[N.l]],
+      ['Riesgo de deserción escolar',DLN[dl]]
+    ],
+    drop:DROPLINE[dl],
+    act
+  };
+
+  /* áreas con termómetro */
+  const VD=[
+    'No se ven señales claras de violencia familiar.',
+    'Hay algunas señales de gritos o maltrato verbal. Es el mejor momento para corregir.',
+    `Hay señales de violencia familiar que pueden estar afectando a ${name}.`,
+    'Hay señales claras y repetidas de violencia familiar.'];
+  const AD=[
+    'No se ven señales de que el alcohol esté causando problemas en casa.',
+    'Hay algunas señales de consumo de alcohol que conviene vigilar.',
+    'Hay señales de consumo de alcohol que ya está afectando a la familia.',
+    'Hay señales fuertes de consumo problemático de alcohol, lo que muchas veces se llama alcoholismo. Solo un profesional de salud puede confirmarlo.'];
+  const ND=[
+    `No se ven señales importantes de sufrimiento en ${name}.`,
+    `${name} muestra algunas señales de malestar.`,
+    `${name} muestra señales de sufrimiento emocional que conviene evaluar.`,
+    `${name} muestra señales fuertes de sufrimiento. Necesita una evaluación pronto.`];
+  const ED=[
+    'La situación escolar se ve estable.',
+    'Hay algunas señales de dificultad en la escuela.',
+    'Hay varias señales de dificultad en la escuela.',
+    'Hay muchas señales de dificultad en la escuela.'];
+  const DD=[
+    'Hoy el riesgo es bajo. Puede cambiar si aumentan los problemas en casa.',
+    'Hay varias señales que juntas preocupan. Todavía se puede revertir.',
+    'Las señales juntas indican riesgo alto de abandono en los próximos meses o al pasar de curso.'];
+  const PD=[
+    'Hay pocos factores que protegen. Reforzarlos es lo que más ayuda.',
+    'Hay algunos factores que protegen y se pueden reforzar.',
+    'Hay varios factores que protegen. Son un gran apoyo.'];
+  const areas=[
+    {name:'Violencia en casa',lvl:V.l,labels:LV,colors:C4,word:LV[V.l],pct:V.p,text:VD[V.l]},
+    {name:'Alcohol en casa',lvl:A.l,labels:LV,colors:C4,word:LV[A.l],pct:A.p,text:AD[A.l]},
+    {name:`Señales en ${name}`,lvl:N.l,labels:LV,colors:C4,word:LV[N.l],pct:N.p,text:ND[N.l]},
+    {name:'Situación escolar',lvl:E.l,labels:LV,colors:C4,word:LV[E.l],pct:E.p,text:ED[E.l]},
+    {name:'Riesgo de deserción escolar',lvl:dl,labels:DLN,colors:C3,word:DLN[dl],pct:score,text:DD[dl]},
+    {name:'Factores de protección',lvl:pl,labels:PLN,colors:CP,word:PLN[pl],pct:P.p,text:PD[pl]}
+  ];
+
+  /* informe */
+  const sec=[];
+  const lm=(id,min)=>marked(ans,id,min);
+
+  sec.push({h:'Lectura general',p:[
+    `Este informe mira cuatro cosas: el clima de violencia en el hogar (${LV[V.l].toLowerCase()}), el alcohol en el entorno (${LV[A.l].toLowerCase()}), las señales emocionales y de conducta de ${name} (${LV[N.l].toLowerCase()}) y su situación escolar (${LV[E.l].toLowerCase()}). Cada nivel sale de qué tan seguido usted marcó cada situación en el último mes.`
+  ]});
+
+  const dyn=[];
+  if(V.l>=2&&A.l>=2)dyn.push('La violencia y el alcohol aparecen juntos. Es la combinación que más daño suele hacer: el alcohol baja el control de los impulsos y la violencia se vuelve menos predecible. Para un niño, lo impredecible es lo más difícil de vivir, porque no puede saber cuándo estará a salvo. Esto mantiene su cuerpo en alerta constante (hipervigilancia).');
+  else if(V.l>=2)dyn.push('El hogar muestra un clima de violencia que puede ser verbal, psicológica o física. Aunque el niño no reciba los golpes, ver o escuchar violencia entre adultos también cuenta como maltrato infantil y produce efectos parecidos a recibirla.');
+  else if(A.l>=2)dyn.push('El consumo de alcohol en el entorno ya afecta a la familia. En estos hogares es común que cambien las normas y el afecto según el estado del adulto, que haya secretos y vergüenza, y que el niño asuma cargas que no le corresponden.');
+  else if(V.l===1||A.l===1)dyn.push('Hay señales leves de tensión. Todavía no marcan un patrón fuerte, pero los gritos frecuentes o el alcohol que empieza a causar problemas suelen crecer si no se atienden.');
+  else dyn.push('No se observan señales claras de violencia ni de problemas con el alcohol. Aun así, si algo en casa le preocupa, vale la pena conversarlo con un profesional.');
+  const finds=[];
+  if(lm('V',1).length)finds.push('Violencia en casa. Usted marcó: '+lm('V',1).join(', ')+'.');
+  if(lm('A',1).length)finds.push('Alcohol. Usted marcó: '+lm('A',1).join(', ')+'.');
+  sec.push({h:'Dinámica familiar',p:dyn,ul:finds});
+
+  const ageP={
+    '6 a 8':`A los 6 a 8 años los niños todavía no pueden explicar con palabras lo que sienten. Lo muestran con el cuerpo y la conducta: dolores de panza o de cabeza, miedo a separarse de los padres, pesadillas, volver a conductas de más pequeño y berrinches. También es común el pensamiento mágico: creen que ellos causaron los problemas de los adultos y que «es mi culpa».`,
+    '9 a 11':`A los 9 a 11 años el niño ya entiende lo que pasa, pero no puede cambiarlo. Es frecuente ver ansiedad por el rendimiento o, al contrario, desinterés; irritabilidad; vergüenza y secretos («no se lo cuento a nadie»); y alejamiento de los amigos. Algunos se vuelven «adultos pequeños»: cuidan a sus hermanos o tratan de calmar los conflictos. Esto se llama parentificación y les quita tiempo de juego y de estudio.`,
+    '12 a 14':`A los 12 a 14 años el impacto suele verse como irritabilidad, retraimiento, desafío a la autoridad y faltas a clases. Sube el riesgo de síntomas depresivos, de conductas de autolesión y de acercarse al alcohol u otras sustancias. También puede normalizar la violencia y repetirla en sus propias relaciones si no recibe ayuda.`
+  }[ag];
+  const hyp=[];
+  if(ans.N1>=1||ans.N9>=1)hyp.push('La tristeza, el desgano o la culpa pueden indicar un cuadro depresivo o baja autoestima. En los niños la depresión muchas veces se ve como irritabilidad.');
+  if(ans.N2>=1||ans.N3>=1||ans.N4>=1)hyp.push('El miedo, los sustos, las pesadillas o los dolores sin causa médica pueden indicar ansiedad o estrés postraumático. El cuerpo sigue en «modo alarma» aunque el peligro ya pasó.');
+  if(ans.N5>=1||ans.N7>=1)hyp.push('El enojo fuerte o las mentiras por miedo muestran dificultad para manejar las emociones. Muchas veces es una forma de protegerse y no «mala conducta».');
+  if(ans.N6>=1)hyp.push('El aislamiento puede indicar retraimiento social, vergüenza o miedo a que otros se enteren de lo que pasa en casa.');
+  if(ans.N8>=1)hyp.push('Actuar como más pequeño (regresión) es una señal clásica de estrés fuerte en la infancia.');
+  if(ans.E5>=1&&(V.l>=1||A.l>=1||N.l>=1))hyp.push('La dificultad para concentrarse necesita cuidado. Antes de pensar en un trastorno de atención (TDAH), un profesional debe descartar que sea efecto del estrés, del mal sueño o del miedo.');
+  if(ans.A7>=1)hyp.push(`Haber visto o cuidado a un adulto ebrio expone a ${name} a asumir un rol de adulto, con vergüenza, preocupación constante y menos tiempo para jugar y estudiar.`);
+  if(ans.V5>=1||ans.V6>=1)hyp.push('Presenciar violencia entre adultos puede producir hipervigilancia, ansiedad y conductas agresivas o de sumisión.');
+  const p3=[ageP];
+  if(hyp.length)p3.push('Según lo que usted marcó, estas son las hipótesis de trabajo para que un profesional las evalúe. No son diagnósticos.');
+  else p3.push(`Usted no marcó señales emocionales importantes en ${name}. Si cambia su ánimo, su sueño o su conducta, vuelva a mirar.`);
+  sec.push({h:`Cómo puede estar viviéndolo ${name}`,p:p3,ul:hyp});
+
+  const prot=AREAS.find(a=>a.id==='P').items.filter(i=>ans[i.id]>=1).map(i=>i.s);
+  const protP=[
+    `Hay pocos factores que protegen a ${name}. Fortalecer el vínculo de confianza con al menos un adulto es la acción de mayor impacto. Un solo adulto estable y afectuoso cambia mucho la forma en que un niño supera lo difícil.`,
+    `Hay algunos factores que protegen a ${name}${prot.length?' ('+prot.join(', ')+')':''}, y hay espacio para reforzarlos. Mientras más estables sean los adultos y las rutinas, mejor se recupera un niño de situaciones difíciles.`,
+    `${name} cuenta con varios factores que lo protegen (${prot.join(', ')}). Tener al menos un adulto estable y de confianza es lo que más ayuda a un niño a recuperarse de situaciones difíciles. Esta capacidad se llama resiliencia.`][pl];
+  sec.push({h:`Lo que protege a ${name}`,p:[protP]});
+
+  const dropLvl=[
+    `Hoy el riesgo de que ${name} abandone la escuela es bajo. Puede cambiar si aumentan los conflictos en casa, por eso conviene volver a mirar en unos meses.`,
+    `Hay un riesgo medio de que ${name} abandone la escuela. Todavía es buen momento para actuar, porque la deserción casi nunca es repentina.`,
+    `Hay un riesgo alto de que ${name} abandone la escuela. Si no recibe apoyo en las próximas semanas, el abandono puede ocurrir en los próximos meses o al pasar de curso.`][dl];
+  const dfac=[...lm('E',1)];
+  if(V.l>=2)dfac.push('clima de violencia en casa');
+  if(A.l>=2)dfac.push('consumo de alcohol que afecta a la familia');
+  if(N.l>=2)dfac.push('malestar emocional importante');
+  if(pl===0)dfac.push('pocos factores de protección');
+  const dp=[dropLvl,'La deserción se arma por pasos: faltas, notas más bajas, atraso, vergüenza y, al final, abandono. En hogares con violencia o alcohol esos pasos se aceleran, porque el niño duerme mal, se concentra menos, vive con miedo, a veces falta para cuidar o trabajar y muchas veces nadie revisa sus tareas.'];
+  dp.push(age>=12?'A los 12 a 14 años el riesgo es mayor porque coincide con el paso a secundaria, con más exigencia académica y con la presión de trabajar o de pertenecer a un grupo. Un adolescente con malestar en casa suele empezar faltando algunos días antes de dejar la escuela por completo.':'A esta edad el abandono total es menos común, pero las faltas, el atraso y la repetición de curso ya son señales tempranas. Son mucho más fáciles de corregir ahora que más adelante.');
+  sec.push({h:'Riesgo de deserción escolar',p:dp,ul:dfac.length?['Factores que suben el riesgo: '+dfac.join('; ')+'.']:['No se marcaron factores de riesgo importantes.']});
+
+  const now=[`Hable con ${name} en un momento tranquilo. Dígale: «No es tu culpa lo que pasa en casa» y «Puedes contarme lo que sientes y no me voy a enojar». Escuche sin interrumpir ni regañar.`];
+  if(['V3','V4','V5','V10'].some(k=>ans[k]>=1))now.push(`Pare cualquier golpe o castigo físico desde hoy. Si hay violencia entre adultos, procure un lugar seguro para ${name} durante los conflictos y una persona de confianza a quien pueda avisar. Si hay peligro ahora mismo, llame a emergencias o a la policía de su localidad.`);
+  if(ans.A8>=1)now.push(`No cuide a ${name} ni maneje con esa persona después de tomar alcohol. Deje acordado un adulto que no haya tomado para esos momentos.`);
+  if(ans.A9>=1)now.push(`No le ofrezca alcohol a ${name}, ni siquiera para probar.`);
+  if(ans.N10>=1)now.push(`Pregúntele a ${name} directamente y con calma si piensa en hacerse daño. Preguntar no le pone la idea en la cabeza y suele aliviar. No lo deje solo, retire de su alcance medicinas y objetos peligrosos, y llévelo esta misma semana a un profesional de salud mental o a urgencias.`);
+  if(ans.V9===2)now.push(`Asegure lo básico de ${name}: comida, ropa limpia, controles de salud y un adulto presente.`);
+  sec.push({h:'Qué hacer esta semana',ul:now});
+
+  const soon=[];
+  if(V.l>=1||A.l>=1||N.l>=1)soon.push(`Pida una evaluación con un psicólogo o psicóloga infantil o un servicio de salud mental${parents?'. '+parents+', lleven este informe':''}. Es una forma de cuidar a ${name} y no de acusar a nadie.`);
+  if(V.l>=1)soon.push('Cambien los castigos por límites claros y consecuencias cortas y justas (por ejemplo, perder un permiso por un día). Cuando suba el enojo, tome una pausa de 10 minutos antes de hablar. Es más eficaz y no daña el vínculo.');
+  if(V.l>=2)soon.push('Busquen orientación familiar o de pareja con un profesional, y los servicios de protección de la niñez y de atención a la violencia de su localidad.');
+  if(A.l>=1)soon.push('Si usted u otro adulto toma más de lo que quisiera, hable con un médico o un centro de atención de adicciones. El alcoholismo es una enfermedad que se trata y no es falta de voluntad. Los grupos de apoyo y el acompañamiento de la familia ayudan mucho.');
+  soon.push('Mantengan rutinas estables de comida, sueño y tareas. La previsibilidad calma a un niño que vive tensión.');
+  soon.push(`Reserve 15 minutos al día para estar con ${name} sin pantallas ni reproches.`);
+  sec.push({h:'Qué hacer en las próximas 4 semanas',ul:soon});
+
+  const sch=[];
+  if(E.l>=1||dl>=1)sch.push('Pida una reunión con el tutor y con el departamento de orientación o psicopedagogía. Usted decide cuánto contar de lo que pasa en casa.');
+  if(dl>=1)sch.push('Acuerden un plan simple: control de asistencia cada semana, apoyo en las tareas, un adulto de referencia en la escuela y aviso inmediato si hay dos faltas seguidas.');
+  if(ans.E7>=1)sch.push('Pida que la escuela atienda las burlas o el acoso. Es otra causa frecuente de abandono.');
+  if(ans.E9>=1)sch.push('Faltar a clases para trabajar o cuidar hermanos pone en riesgo el derecho a estudiar. Busquen apoyo familiar o comunitario y hablen con la escuela sobre flexibilidad o becas.');
+  if(ans.E8>=1)sch.push('Si hay atraso, pidan nivelación o refuerzo. Repetir curso sin apoyo suele aumentar el riesgo de abandono.');
+  if(!sch.length)sch.push('Mantengan el contacto con la escuela y sigan revisando los cuadernos y la asistencia.');
+  sec.push({h:'Qué hacer con la escuela',ul:sch});
+
+  sec.push({h:'Importante saber',ul:[
+    'Este test es una herramienta de orientación. No es un diagnóstico y no reemplaza la evaluación de un psicólogo, un psiquiatra o un trabajador social.',
+    'Depende de la sinceridad de quien responde. Muchas familias minimizan lo que pasa sin querer. Un resultado bajo no garantiza que todo esté bien: si algo le preocupa, consulte igual.',
+    'La violencia incluye gritos, insultos y amenazas, no solo golpes. Todas dañan.',
+    'Hablar de alcohol y de violencia da vergüenza. Pedir ayuda no lo hace mal padre ni mala madre. Protege a su hijo o hija.',
+    'Sus respuestas no se guardaron en ningún lugar. Si desea conservar el informe, use los botones para copiarlo.'
+  ]});
+
+  const ficha=[
+    ['Niño o niña',name],['Edad',age+' años'],['Curso o grado',d.grade||'No indicado'],
+    ['Madre o tutora',d.mother||'No indicado'],['Padre o tutor',d.father||'No indicado'],
+    ['Responde el test',d.who||'No indicado'],['Fecha',date]
+  ];
+  return {name,ficha,summary,areas,alerts:al,sections:sec};
+}
+
+/* ---------- Texto plano ---------- */
+function summaryText(m){
+  const L=['RESUMEN DEL INFORME','Niño o niña: '+m.name+' · '+m.ficha[1][1]+' · '+m.ficha[2][1],
+    'Madre o tutora: '+m.ficha[3][1]+' · Padre o tutor: '+m.ficha[4][1],'',m.summary.head,''];
+  m.summary.qa.forEach(r=>L.push(r[0]+' '+r[1]));
+  L.push('',m.summary.drop,'','Qué hacer primero:');
+  m.summary.act.forEach(a=>L.push('- '+a));
+  return L.join('\n');
+}
+function fullText(m){
+  const L=['INFORME DE ORIENTACIÓN FAMILIAR · TERMÓMETRO DEL HOGAR',''];
+  m.ficha.forEach(r=>L.push(r[0]+': '+r[1]));
+  L.push('','');L.push(summaryText(m),'','RESULTADO POR ÁREA');
+  m.areas.forEach(a=>L.push('- '+a.name+': '+a.word+'. '+a.text));
+  if(m.alerts.length){L.push('','ALERTAS');m.alerts.forEach(a=>L.push('- '+a.t+'. '+a.d));}
+  m.sections.forEach(s=>{
+    L.push('',s.h.toUpperCase());
+    (s.p||[]).forEach(p=>L.push(p,''));
+    (s.ul||[]).forEach(u=>L.push('- '+u));
+  });
+  return L.join('\n').replace(/\n{3,}/g,'\n\n');
+}
+
+/* ---------- Pantalla de resultado ---------- */
+function meterHTML(a){
+  return `<div class="meter" role="img" aria-label="${esc(a.name+': '+a.word)}">`+
+    a.labels.map((l,i)=>`<span class="seg${i===a.lvl?' cur':''}"><i class="${i<=a.lvl?'on':''}" style="--c:${a.colors[i]}"></i><b>${esc(l)}</b></span>`).join('')+'</div>';
+}
+function renderResult(m){
+  const out=$('#out');
+  out.innerHTML=`
+  <header class="card rhead">
+    <p class="eyebrow">Ficha de orientación familiar</p>
+    <h2>${esc(m.name)}</h2>
+    <dl class="ficha">${m.ficha.slice(1).map(r=>`<div><dt>${esc(r[0])}</dt><dd>${esc(r[1])}</dd></div>`).join('')}</dl>
+  </header>
+  ${m.alerts.length?`<div class="alert" role="alert"><h3>Atención</h3>${m.alerts.map(a=>`<div class="a-item"><strong>${esc(a.t)}</strong><span>${esc(a.d)}</span></div>`).join('')}</div>`:''}
+  <section class="card sumcard" aria-labelledby="h-sum">
+    <div class="card-head"><h3 id="h-sum">Resumen del informe</h3><button type="button" class="btn sm" data-copy="sum">Copiar resumen</button></div>
+    <p style="margin-top:12px;font-weight:600;font-size:19px;max-width:60ch">${esc(m.summary.head)}</p>
+    <ul class="qa">${m.summary.qa.map(r=>`<li><span>${esc(r[0])}</span><span>${esc(r[1])}</span></li>`).join('')}</ul>
+    <p style="margin-top:14px">${esc(m.summary.drop)}</p>
+    <h4>Qué hacer primero</h4>
+    <ul>${m.summary.act.map(a=>`<li>${esc(a)}</li>`).join('')}</ul>
+  </section>
+  <section class="card" aria-labelledby="h-areas">
+    <h3 id="h-areas" style="font-size:24px">Resultado por área</h3>
+    <div class="areas-r">${m.areas.map(a=>`<div class="ar"><div class="ar-top"><strong>${esc(a.name)}</strong><span class="chip" style="--c:${a.colors[a.lvl]}">${esc(a.word)}</span></div>${meterHTML(a)}<p>${esc(a.text)}</p></div>`).join('')}</div>
+  </section>
+  <section class="card rep" aria-labelledby="h-rep">
+    <div class="card-head"><h3 id="h-rep" style="font-size:26px">Informe completo</h3><button type="button" class="btn sm" data-copy="full">Copiar informe</button></div>
+    ${m.sections.map(s=>`<section><h3>${esc(s.h)}</h3>${(s.p||[]).map(p=>`<p>${esc(p)}</p>`).join('')}${(s.ul&&s.ul.length)?`<ul>${s.ul.map(u=>`<li>${esc(u)}</li>`).join('')}</ul>`:''}</section>`).join('')}
+  </section>
+  <div id="fb" class="card" hidden><p><strong>Copie el texto desde aquí.</strong> El botón de copiar no funcionó en este equipo.</p><textarea id="fbta" readonly aria-label="Texto del informe para copiar"></textarea></div>
+  <div class="row"><button type="button" class="btn ghost" id="back">Cambiar respuestas</button><button type="button" class="btn ghost" id="again">Hacer un test nuevo</button></div>`;
+  out.hidden=false;$('#test').hidden=true;
+  out.querySelectorAll('[data-copy]').forEach(b=>b.addEventListener('click',()=>copy(b,b.dataset.copy==='sum'?summaryText(m):fullText(m))));
+  $('#back').addEventListener('click',()=>{out.hidden=true;$('#test').hidden=false;window.scrollTo(0,0);});
+  $('#again').addEventListener('click',()=>{clearAll();out.hidden=true;$('#test').hidden=false;window.scrollTo(0,0);});
+  window.scrollTo(0,0);out.focus({preventScroll:true});
+}
+function copy(btn,text){
+  const old=btn.textContent;
+  const done=t=>{btn.textContent=t;setTimeout(()=>{btn.textContent=old;},2200);};
+  try{
+    navigator.clipboard.writeText(text).then(()=>done('Copiado'),()=>fallback(text,done));
+  }catch(e){fallback(text,done);}
+}
+function fallback(text,done){
+  const fb=$('#fb'),ta=$('#fbta');
+  fb.hidden=false;ta.value=text;ta.focus();ta.select();done('Seleccione y copie');
+}
+
+/* ---------- Eventos ---------- */
+function clearAll(){
+  $('#form').reset();
+  document.querySelectorAll('.q.missing').forEach(q=>q.classList.remove('missing'));
+  $('#err-datos').hidden=true;$('#err-q').hidden=true;$('#ex-note').hidden=true;
+  progress();
+}
+renderQs();progress();
+const smooth=window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth';
+$('#form').addEventListener('change',e=>{
+  if(e.target.type==='radio'){const q=e.target.closest('.q');if(q)q.classList.remove('missing');progress();}
+});
+$('#ex').addEventListener('click',()=>{
+  $('#child').value='Mateo';$('#age').value='10';$('#grade').value='5.º de primaria (ejemplo)';
+  $('#mother').value='Madre de ejemplo';$('#father').value='Padre de ejemplo';$('#who').value='La madre';
+  Object.keys(EX).forEach(k=>{const r=document.getElementById(k+'-'+EX[k]);if(r)r.checked=true;});
+  progress();$('#ex-note').hidden=false;
+});
+$('#clear').addEventListener('click',clearAll);
+$('#form').addEventListener('submit',e=>{
+  e.preventDefault();
+  const d=getData(),eD=$('#err-datos'),eQ=$('#err-q');
+  let msg='',focusEl=null;
+  if(!d.child){msg='Escriba el nombre del niño o niña.';focusEl=$('#child');}
+  else if(!d.age){msg='Elija la edad, de 6 a 14 años.';focusEl=$('#age');}
+  else if(!d.mother&&!d.father){msg='Escriba el nombre de al menos un padre, madre o tutor.';focusEl=$('#mother');}
+  if(msg){eD.textContent=msg;eD.hidden=false;focusEl.focus();focusEl.scrollIntoView({block:'center',behavior:smooth});return;}
+  eD.hidden=true;
+  const r=getAns();
+  document.querySelectorAll('.q.missing').forEach(q=>q.classList.remove('missing'));
+  if(r.missing.length){
+    r.missing.forEach(id=>$('#f-'+id).classList.add('missing'));
+    eQ.textContent='Faltan '+r.missing.length+(r.missing.length===1?' pregunta':' preguntas')+' por responder. Quedaron marcadas en la lista.';
+    eQ.hidden=false;
+    $('#f-'+r.missing[0]).scrollIntoView({block:'center',behavior:smooth});
+    return;
+  }
+  eQ.hidden=true;
+  renderResult(build(d,r.ans));
+});
+})();
+</script>
+
+</body></html>
